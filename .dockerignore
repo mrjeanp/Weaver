@@ -1,0 +1,14 @@
+.dockerignore
+.git
+.gitignore
+.vscode
+.editorconfig
+.idea
+node_modules
+Dockerfile*
+docker-compose*
+README
+LICENSE
+Makefile
+helm-charts
+coverage*
