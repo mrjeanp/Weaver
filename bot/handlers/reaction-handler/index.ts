@@ -7,7 +7,9 @@ import {
 } from "discord.js";
 import client from "../../lib/client";
 import type { BotHandler } from "../../lib/interfaces";
-import { getConfig } from "../../lib/config";
+import { getConfig, getEmojis } from "../../lib/config";
+import _has from "lodash/has";
+import assert from "../../lib/assert.fn";
 
 let addHandler: (
   reaction: MessageReaction | PartialMessageReaction,
@@ -24,28 +26,26 @@ export default {
       Events.MessageReactionAdd,
       (addHandler = async (reaction, user) => {
         try {
-          if (reaction.client.user.id === user.id) return;
+          const botId = reaction.client.user.id;
+          const message = reaction.message;
+          const emoji = reaction.emoji.name ?? "";
+          const guildId = message.guildId;
+          const guild = message.guild;
 
-          reaction.partial && (await reaction.fetch());
+          if (!message.inGuild() || botId === user.id) return;
 
-          const { message, emoji } = reaction;
-          const emoj = emoji.name ?? emoji.identifier;
+          const config = await getConfig(guildId ?? "");
+          const _emojis = await getEmojis(guildId ?? "");
 
-          message.partial && (await message.fetch());
+          assert(message.id in config.messages, "message id not registered");
+          assert(emoji in _emojis, "emoji not registered");
 
-          const { guild } = message;
+          const roleId = _emojis[emoji];
 
-          if (!guild) throw "message not in guild";
-
-          const { roleme, _emojis = {} } = await getConfig(guild);
-
-          if (roleme.includes(message.id) && emoj in _emojis) {
-            const role = _emojis[emoj];
-            await guild.members.addRole({
-              role,
-              user: user.id,
-            });
-          }
+          await guild?.members.addRole({
+            role: roleId,
+            user: user.id,
+          });
         } catch (err) {
           console.error(err);
         }
@@ -56,25 +56,25 @@ export default {
       Events.MessageReactionRemove,
       (removeHandler = async (reaction, user) => {
         try {
-          reaction.partial && (await reaction.fetch());
+          const botId = reaction.client.user.id;
+          const message = reaction.message;
+          const emoji = reaction.emoji.name ?? "";
+          const guildId = message.guildId;
+          const guild = message.guild;
 
-          const { message, emoji } = reaction;
-          message.partial && (await message.fetch());
+          if (!message.inGuild() || botId === user.id) return;
 
-          const { guild } = message;
+          const config = await getConfig(guildId ?? "");
+          const _emojis = await getEmojis(guildId ?? "");
 
-          if (!guild) throw "message not in guild";
+          assert(message.id in config.messages, "message id not registered");
+          assert(emoji in _emojis, "emoji not registered");
 
-          const emoj = emoji.name ?? "";
-          const { _emojis: emojis = {}, roleme } = await getConfig(guild);
-
-          if (roleme.includes(message.id) && emoj in emojis) {
-            const role = emojis[emoj];
-            await guild.members.removeRole({
-              role,
-              user: user.id,
-            });
-          }
+          const role = _emojis[emoji];
+          await guild!.members.removeRole({
+            role,
+            user: user.id,
+          });
         } catch (err) {
           console.error(err);
         }

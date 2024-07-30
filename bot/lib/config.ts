@@ -1,12 +1,13 @@
-import type {
-  Guild,
-  Message,
-  MessageResolvable,
-  TextChannel,
+import {
+  ChannelType,
+  PermissionsBitField,
+  type Guild,
+  type Message,
+  type TextChannel,
 } from "discord.js";
 import _get from "lodash/get";
-import _invert from "lodash/invert";
 import _set from "lodash/set";
+import client from "./client";
 
 export type BotConfig = {
   this: {
@@ -14,61 +15,56 @@ export type BotConfig = {
     message: string;
   };
 
-  rolem: Record<string, string>;
-  roleme: MessageResolvable[];
-
-  _emojis?: Record<string, string>;
+  roles: Record<
+    string,
+    {
+      emoji: string;
+    }
+  >;
+  messages: Record<string, any>;
 };
 
-const cache: Record<string, BotConfig> = {};
-
-export const saveConfig = async (
-  guild: Guild,
-  confs: BotConfig | Record<string, any>
-) => {
-  const config = await getConfig(guild);
-
-  for (const [path, value] of Object.entries(confs)) {
-    _set(config, path, value);
-  }
-
-  const channelId = _get(config, "this.channel") as string;
-  const messageId = _get(config, "this.message") as string;
-
-  const channel = guild.channels.cache.get(channelId) as TextChannel;
-  const message = channel.messages.cache.get(messageId) as Message<true>;
-
-  await message.edit(
-    JSON.stringify({
-      ...config,
-      _emojis: undefined,
-    } as BotConfig)
-  );
-
-  saveCache(guild, config);
+const initConfig: BotConfig = {
+  this: {
+    message: "",
+    channel: "",
+  },
+  roles: {},
+  messages: {},
 };
 
-export const getConfig = async (guild: Guild) => {
-  if (cache[guild.id]) return { ...cache[guild.id] };
+const _config: Record<string, BotConfig> = {};
+const _emojis: Record<string, any> = {};
 
-  let config: BotConfig = {
-    this: {
-      message: "",
-      channel: "",
-    },
-    rolem: {},
-    roleme: [],
-  };
+export const getConfig = async (guildId: string) => {
+  if (_config[guildId]) return { ..._config[guildId] };
 
-  const chan = guild.channels.cache.find(
-    (ch) => ch.name === "bellboy"
-  ) as TextChannel;
+  let config = { ...initConfig };
+  let guild = client.guilds.cache.get(guildId);
 
-  if (chan.partial) {
-    await chan.fetch(true);
+  let chan = guild?.channels.cache.find(
+    (ch) => ch.name === "bellboy" && ch.isTextBased()
+  ) as TextChannel | undefined;
+
+  let message = chan
+    ? (await chan?.messages.fetch({ limit: 1 })).last()
+    : undefined;
+
+  if (!guild) {
+    throw "Guild not found!";
   }
-
-  let message = (await chan.messages.fetch({ limit: 1 })).last();
+  if (!chan) {
+    chan = await guild.channels.create({
+      name: "bellboy",
+      type: ChannelType.GuildText,
+      permissionOverwrites: [
+        {
+          id: guild.id,
+          deny: [PermissionsBitField.All],
+        },
+      ],
+    });
+  }
 
   if (!message) {
     message = await chan.send("Creating configuration...");
@@ -78,28 +74,58 @@ export const getConfig = async (guild: Guild) => {
       message: message.id,
     };
 
-    await message?.edit(
-      JSON.stringify({
-        ...config,
-        _emojis: undefined,
-      } as BotConfig)
-    );
+    await message?.edit(JSON.stringify(config));
   } else {
     config = JSON.parse(message.content);
   }
 
-  saveCache(guild, {
-    ...config,
-  });
-
+  saveCache(guildId, config);
   return config;
 };
 
-const saveCache = (guild: Guild, config: BotConfig) => {
-  cache[guild.id] = {
-    ...config,
-    _emojis: _invert(config.rolem),
-  };
+/**
+ * Saves configuration
+ *
+ * @param guildId string
+ * @param confs lodash config keys
+ * @returns
+ */
+export const saveConfig = async (
+  guildId: string,
+  confs: BotConfig | Record<string, any>
+) => {
+  const config = await getConfig(guildId);
+  const guild = client.guilds.cache.get(guildId);
+
+  const channelId = _get(config, "this.channel") as string;
+  const messageId = _get(config, "this.message") as string;
+
+  const channel = guild && (guild.channels.cache.get(channelId) as TextChannel);
+  const message =
+    channel && (channel.messages.cache.get(messageId) as Message<true>);
+
+  if (!message) return;
+
+  for (const [path, value] of Object.entries(confs)) {
+    _set(config, path, value);
+  }
+
+  await message.edit(JSON.stringify(config));
+
+  saveCache(guildId, config);
 };
 
+const saveCache = async (guildId: string, config: BotConfig) => {
+  _config[guildId] = { ...config };
 
+  for (const [roleId, roleConfig] of Object.entries(config.roles)) {
+    roleConfig.emoji && _set(_emojis, `${guildId}.${roleConfig.emoji}`, roleId);
+  }
+};
+
+export const getEmojis = async (guildId: string) => {
+  // if (_emojis[guildId]) return _emojis[guildId];
+  await getConfig(guildId);
+
+  return _emojis[guildId];
+};

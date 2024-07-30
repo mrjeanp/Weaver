@@ -7,13 +7,13 @@ let handler: { (client: Client<true>): void } | undefined;
 
 export default {
   register() {
-    client.once(
+    client.on(
       Events.ClientReady,
       (handler = async (client) => {
         console.log(`Ready! Logged in as ${client.user?.tag}`);
 
         for (const [, guild] of client.guilds.cache) {
-          await getConfig(guild);
+          await getConfig(guild.id);
         }
       })
     );

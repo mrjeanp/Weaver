@@ -5,24 +5,18 @@ import {
   CategoryChannel,
   ChatInputCommandInteraction,
   SlashCommandBuilder,
-  type GuildBasedChannel
+  type GuildBasedChannel,
 } from "discord.js";
 import type { BotCommand } from "../../lib/interfaces";
 
-const data = new SlashCommandBuilder();
-data
+export const data = new SlashCommandBuilder()
   .setName("unchannel")
-  .setDescription("Removes all channels that match a pattern")
-  .addStringOption((option) =>
-    option
-      .setName("pattern")
-      .setDescription("The pattern to look for in channels")
-      .setRequired(true)
-  )
+  .setDescription("Removes all channels which name matches a pattern")
+  .addStringOption((option) => option.setName("pattern").setDescription("String|Regex").setRequired(true))
   .setDefaultMemberPermissions(0)
   .setDMPermission(false);
 
-async function execute(interaction: ChatInputCommandInteraction) {
+export async function execute(interaction: ChatInputCommandInteraction) {
   if (!interaction.inGuild()) return;
   if (!interaction.isCommand()) return;
 

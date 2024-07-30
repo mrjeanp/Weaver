@@ -13,7 +13,7 @@ export async function handle(interaction: Interaction) {
 
   try {
     const command = await loadCommand(interaction.commandName);
-    // await interaction.deferReply({ ephemeral: true });
+    console.log("Loaded command", command.data.name);
     await command.execute(interaction);
   } catch (error) {
     console.error(error);

@@ -17,4 +17,4 @@ for await (const handler of handlers) {
 }
 
 // start bot
-client.login(process.env.TOKEN);
+client.login(process.env.DISCORD_TOKEN);

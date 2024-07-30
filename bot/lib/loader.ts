@@ -1,10 +1,9 @@
+import { readdir } from "node:fs/promises";
 import path from "path";
 import type { BotCommand, BotHandler } from "./interfaces";
-import { Glob } from "bun";
-import { readdir } from "node:fs/promises";
 
-export const commandsDir = process.cwd() + "/bot/commands";
-export const handlersDir = process.cwd() + "/bot/handlers";
+export const commandsDir = path.join(__dirname, "../commands");
+export const handlersDir = path.join(__dirname, "../handlers");
 
 const commandCache: Record<string, BotCommand> = {};
 const handlerCache: Record<string, BotHandler> = {};
@@ -47,8 +46,6 @@ export async function loadCommand(commandName: string): Promise<BotCommand> {
 
   commandCache[commandName] = command;
 
-  console.log("loaded command", commandName);
-
   return command;
 }
 
@@ -60,10 +57,10 @@ export async function* loadCommands(commandNames: string[]) {
 }
 
 export async function loadAllCommands() {
-  const dirs = await readdir(path.join(__dirname, "../commands"));
+  const dirs = await readdir(commandsDir);
 
   const cmds: BotCommand[] = [];
-  
+
   for (const dir of dirs) {
     cmds.push(await loadCommand(dir));
   }
