@@ -4,7 +4,7 @@ import { loadAllCommands } from "../bot/lib/loader";
 // ENVIRONMENT
 const clientId = process.env.DISCORD_APPLICATION_ID;
 const guildId = process.env.GUILD_ID;
-const token = process.env.TOKEN;
+const token = process.env.DISCORD_TOKEN;
 
 const rest = new REST().setToken(token ?? "");
 
