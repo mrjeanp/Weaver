@@ -1,6 +1,6 @@
 {
-  "name": "bellboy",
-  "module": "bot/main.ts",
+  "name": "weaver",
+  "module": "bot/index.ts",
   "type": "module",
   "scripts": {
     "start": "bun deploy-commands && bun ./bot/main.ts",

@@ -1,7 +1,7 @@
 import { ApplicationCommandType, Events, type Interaction } from "discord.js";
 import { loadCommand } from "../../lib/loader";
 import client from "../../lib/client";
-import type { BotHandler } from "../../lib/interfaces";
+import type { ClientEventRegister } from "../../lib/interfaces";
 
 export function register() {
   client.on(Events.InteractionCreate, handle);
@@ -31,4 +31,4 @@ export function unregister() {
 export default {
   register,
   unregister,
-} as BotHandler;
+} as ClientEventRegister;

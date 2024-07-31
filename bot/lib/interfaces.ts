@@ -6,7 +6,7 @@ import type {
   SlashCommandSubcommandBuilder,
 } from "discord.js";
 
-export interface BotCommand {
+export interface BotCommandDescriptor {
   data:
     | SlashCommandBuilder
     | SlashCommandOptionsOnlyBuilder
@@ -14,7 +14,7 @@ export interface BotCommand {
   execute: (interaction: ChatInputCommandInteraction) => void;
 }
 
-export interface BotHandler {
+export interface ClientEventRegister {
   register: () => void;
   unregister: () => void;
 }

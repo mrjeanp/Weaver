@@ -9,7 +9,7 @@ import {
 } from "@discordjs/voice";
 import { BaseGuildTextChannel, Events, VoiceState } from "discord.js";
 import client from "../../lib/client";
-import type { BotHandler } from "../../lib/interfaces";
+import type { ClientEventRegister } from "../../lib/interfaces";
 
 const audioPlayer = createAudioPlayer();
 const getAudio = () => createAudioResource("../../assets/audio/elevator-music.mp3");
@@ -92,4 +92,4 @@ export default {
   unregister() {
     client.off(Events.VoiceStateUpdate, handler);
   },
-} as BotHandler;
+} as ClientEventRegister;

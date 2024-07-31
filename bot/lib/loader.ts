@@ -1,12 +1,12 @@
 import { readdir } from "node:fs/promises";
 import path from "path";
-import type { BotCommand, BotHandler } from "./interfaces";
+import type { BotCommandDescriptor, ClientEventRegister } from "./interfaces";
 
 export const commandsDir = path.join(__dirname, "../commands");
 export const handlersDir = path.join(__dirname, "../handlers");
 
-const commandCache: Record<string, BotCommand> = {};
-const handlerCache: Record<string, BotHandler> = {};
+const commandCache: Record<string, BotCommandDescriptor> = {};
+const handlerCache: Record<string, ClientEventRegister> = {};
 
 export async function unloadHandler(handlerName: string): Promise<void> {
   const handler = await loadHandler(handlerName);
@@ -14,7 +14,7 @@ export async function unloadHandler(handlerName: string): Promise<void> {
   handler.unregister();
 }
 
-export async function loadHandler(handlerName: string): Promise<BotHandler> {
+export async function loadHandler(handlerName: string): Promise<ClientEventRegister> {
   const cached = handlerCache[handlerName];
 
   if (cached) return cached;
@@ -36,7 +36,7 @@ export async function* loadHandlers(handlerNames: string[]) {
   }
 }
 
-export async function loadCommand(commandName: string): Promise<BotCommand> {
+export async function loadCommand(commandName: string): Promise<BotCommandDescriptor> {
   const cached = commandCache[commandName];
 
   if (cached) return cached;
@@ -59,7 +59,7 @@ export async function* loadCommands(commandNames: string[]) {
 export async function loadAllCommands() {
   const dirs = await readdir(commandsDir);
 
-  const cmds: BotCommand[] = [];
+  const cmds: BotCommandDescriptor[] = [];
 
   for (const dir of dirs) {
     cmds.push(await loadCommand(dir));

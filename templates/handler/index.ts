@@ -1,7 +1,7 @@
 import { Client, Events } from "discord.js";
 import client from "../../bot/lib/client";
 import { getConfig } from "../../bot/lib/config";
-import type { BotHandler } from "../../bot/lib/interfaces";
+import type { ClientEventRegister } from "../../bot/lib/interfaces";
 
 let handler: { (client: Client<true>): void } | undefined;
 
@@ -22,4 +22,4 @@ export default {
     handler && client.off(Events.ClientReady, handler);
     handler = undefined;
   },
-} as BotHandler;
+} as ClientEventRegister;

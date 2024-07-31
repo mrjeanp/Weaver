@@ -6,7 +6,7 @@ import {
   type PartialUser,
 } from "discord.js";
 import client from "../../lib/client";
-import type { BotHandler } from "../../lib/interfaces";
+import type { ClientEventRegister } from "../../lib/interfaces";
 import { getConfig, getEmojis } from "../../lib/config";
 import _has from "lodash/has";
 import assert from "../../lib/assert.fn";
@@ -86,4 +86,4 @@ export default {
     client.off(Events.MessageReactionAdd, addHandler);
     client.off(Events.MessageReactionRemove, removeHandler);
   },
-} as BotHandler;
+} as ClientEventRegister;

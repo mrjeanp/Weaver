@@ -7,7 +7,7 @@ import {
   SlashCommandBuilder,
   type GuildBasedChannel,
 } from "discord.js";
-import type { BotCommand } from "../../lib/interfaces";
+import type { BotCommandDescriptor } from "../../lib/interfaces";
 
 export const data = new SlashCommandBuilder()
   .setName("unchannel")
@@ -107,4 +107,4 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 export default {
   data,
   execute,
-} as BotCommand;
+} as BotCommandDescriptor;

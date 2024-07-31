@@ -9,6 +9,9 @@ import _get from "lodash/get";
 import _set from "lodash/set";
 import client from "./client";
 
+
+const configChannelName = process.env.CONFIG_CHANNEL ?? 'bellboy'
+
 export type BotConfig = {
   this: {
     channel: string;
@@ -43,7 +46,7 @@ export const getConfig = async (guildId: string) => {
   let guild = client.guilds.cache.get(guildId);
 
   let chan = guild?.channels.cache.find(
-    (ch) => ch.name === "bellboy" && ch.isTextBased()
+    (ch) => ch.name === configChannelName && ch.isTextBased()
   ) as TextChannel | undefined;
 
   let message = chan
@@ -55,7 +58,7 @@ export const getConfig = async (guildId: string) => {
   }
   if (!chan) {
     chan = await guild.channels.create({
-      name: "bellboy",
+      name: configChannelName,
       type: ChannelType.GuildText,
       permissionOverwrites: [
         {
