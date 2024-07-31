@@ -1,11 +1,7 @@
-import {
-  ChatInputCommandInteraction,
-  Guild,
-  SlashCommandBuilder,
-  TextChannel,
-  type MessageResolvable,
-  type TextBasedChannel,
-} from "discord.js";
+import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+
+import _set from "lodash/set";
+import _unset from "lodash/unset";
 
 import { getConfig, saveConfig } from "../../lib/config";
 
@@ -13,11 +9,11 @@ export const data = new SlashCommandBuilder()
   .setName("msg")
   .setDescription("Configure a message")
   .addStringOption((option) =>
-    option.setName("id").setDescription("Message ID").setRequired(true)
+    option.setName("message").setDescription("Message ID").setRequired(true)
   )
-  // .addStringOption((option) =>
-  //   option.setName("emoji").setDescription("Assigns this emoji to the ID")
-  // )
+  .addBooleanOption((option) =>
+    option.setName("unset").setDescription("Removes message from config.")
+  )
   .setDefaultMemberPermissions(0)
   .setDMPermission(false);
 
@@ -26,15 +22,15 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   const response = await interaction.deferReply({ ephemeral: true });
 
-  const guild = interaction.guild?.id!;
-  const id = interaction.options.getString("id")?.trim() as string;
-  // const emoji = interaction.options.getString("emoji")?.trim();
+  const guildId = interaction.guild?.id!;
+  const id = interaction.options.getString("message")?.trim() as string;
+  const unset = interaction.options.getBoolean("unset");
 
-  const config = await getConfig(guild);
+  const config = await getConfig(guildId);
 
-  config.messages[id] = 1;
+  _set(config, `messages.${id}`, {});
+  unset && _unset(config, `messages.${id}`);
 
-  await saveConfig(guild, config);
-
+  saveConfig(guildId, config);
   response.edit("Done");
 }

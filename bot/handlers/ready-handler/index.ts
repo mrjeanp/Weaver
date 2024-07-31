@@ -1,15 +1,12 @@
 import { Client, Events } from "discord.js";
-import client from "../../lib/client";
+import BotHandler from "../../lib/BotHandler";
 import { getConfig } from "../../lib/config";
-import type { ClientEventRegister } from "../../lib/interfaces";
-import BotHandler from "../../lib/BotListener";
 
-let handler: { (client: Client<true>): void } | undefined;
 
 export default new BotHandler().listen(
   Events.ClientReady,
   async (client) => {
-    console.log(`Ready! Logged in as ${client.user?.tag}`);
+    console.log(`${client.user?.tag} is ready!`);
 
     client.user.setUsername("Weaver")
 

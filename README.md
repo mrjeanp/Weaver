@@ -28,9 +28,10 @@ Configure a role.
 * `role` (required) Mentionable role to configure. If this is the only option, the role will be removed from [configuration](#configuration).
 * `emoji` Assigns an emoji to this role.
 
-### `/msg [message*]` 
-Subscribe to a message. Required for auto-assigning roles to members by reacting to the message.
+### `/msg [message*] [unset]` 
+Tracks a message. Required for auto-assigning roles to members by reacting to the message.
 * `message` (required) Message ID
+* `unset` Removes the message from configuration.
 
 ### `/react [message*] [emojis]` 
 Makes the bot react to a message with a list of emojis.
