@@ -1,9 +1,8 @@
 import {
   ChannelType,
   PermissionsBitField,
-  type Guild,
   type Message,
-  type TextChannel,
+  type TextChannel
 } from "discord.js";
 import _get from "lodash/get";
 import _set from "lodash/set";

@@ -3,7 +3,7 @@ import { Client, GatewayIntentBits, Partials } from "discord.js";
 const token = process.env.DISCORD_TOKEN;
 
 // Create a new client instance
-const client = new Client({
+export const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,

@@ -1,24 +1,30 @@
-import type {
+import {
   ChatInputCommandInteraction,
   SlashCommandBuilder,
-  SlashCommandOptionsOnlyBuilder,
+  type SlashCommandOptionsOnlyBuilder,
   SlashCommandSubcommandBuilder,
+  type SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
-import type { BotCommandDescriptor } from "./interfaces";
 
-type BotCommandData =
+export type BotCommandBuilder =
   | SlashCommandBuilder
   | SlashCommandOptionsOnlyBuilder
-  | SlashCommandSubcommandBuilder;
+  | SlashCommandSubcommandBuilder
+  | SlashCommandSubcommandsOnlyBuilder;
 
-type BotCommandFunction = (interaction: ChatInputCommandInteraction) => void;
+export abstract class BotCommand {
+  builder: SlashCommandBuilder;
 
-export default class BotCommand implements BotCommandDescriptor {
-  data: BotCommandData;
-  execute: BotCommandFunction;
-
-  constructor(data: BotCommandData, execute: BotCommandFunction) {
-    this.data = data;
-    this.execute = execute;
+  constructor() {
+    this.builder = new SlashCommandBuilder();
+    this.describe(this.builder);
   }
+
+  getData() {
+    return this.builder.toJSON();
+  }
+
+  abstract describe(builder: BotCommandBuilder): BotCommandBuilder;
+
+  abstract handle(interaction: ChatInputCommandInteraction): Promise<void>;
 }
