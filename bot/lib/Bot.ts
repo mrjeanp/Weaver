@@ -12,7 +12,7 @@ import {
   type SlashCommandOptionsOnlyBuilder,
   type SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
-import { client as defaultClient } from "./defaultClient";
+import defaultClient from "./defaultClient";
 import GuildConfig from "./GuildConfig";
 import interactionCreateListener from "./interactionCreateListener";
 

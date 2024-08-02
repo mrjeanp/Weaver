@@ -1,8 +1,7 @@
 import { Client, GatewayIntentBits, Partials } from "discord.js";
 
-
 // Create a new client instance
-export const client = new Client({
+export default new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMembers,
@@ -13,5 +12,3 @@ export const client = new Client({
   ],
   partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
-
-export default client;
