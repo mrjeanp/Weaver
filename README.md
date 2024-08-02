@@ -2,7 +2,7 @@
 
 A simple bare-bones discord bot, with some useful commands out of the box.
 
-## Setup with docker
+## Setup with Docker
 
 1. Clone this repository and `cd` into it.
 2. Copy `example.env` as `.env` and configure your `.env`.
@@ -21,21 +21,21 @@ This project was created using `bun init`. [Bun](https://bun.sh) is a fast all-i
 
 By default this bot will automatically create a new channel called `weaver` (if not already created) in which, it will store all of it's configuration. You can change this name in your `.env` file. Make sure this channel is only accesible to admins/mods.
 
-## Commands
+## Built-in Commands
 
 ### `/role [role*] [emoji]`
 
 Configure a role.
 
-- `role` (required) Mentionable role to configure. If this is the only option, the role will be removed from [configuration](#configuration).
+- `role` (required) Mentionable role to configure. If this is the only option, the [configuration](#configuration) will be removed.
 - `emoji` Assigns an emoji to this role.
 
 ### `/msg [message*] [emojis]`
 
 Configure a message.
 
-- `message` (required) Message ID, if this is the only option, the cofiguration will be removed
-- `emojis` assigns a space separated list of emojis to the message
+- `message` (required) Message ID, if this is the only option, the [configuration](#configuration) will be removed.
+- `emojis` assigns a space separated list of emojis to the message.
 
 ### `/react [message*] [emojis*]`
 
