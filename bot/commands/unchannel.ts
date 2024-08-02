@@ -60,7 +60,6 @@ export default createCommand(
     for (const [, ch] of guild.channels.cache) {
       if (regex.test(ch.name)) {
         addChannel(ch);
-        // is category?
         if (isCategory(ch)) {
           const cat = ch as CategoryChannel;
           cat.children.cache.forEach((c) => {
@@ -73,7 +72,7 @@ export default createCommand(
     }
 
     const response = await interaction.followUp({
-      content: `You are about to delete these channels, are you sure?\n\n${Object.values(
+      content: `Are you sure you want to delete these channels?\n\n${Object.values(
         unchannels
       )
         .map((d) => d.name)
