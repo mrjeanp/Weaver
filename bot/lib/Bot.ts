@@ -195,7 +195,7 @@ export function createCommand(
 
 export function createListener<Event extends keyof ClientEvents = any>(
   event: Event,
-  callback: (bot: Bot, ...args: ClientEvents[Event]) => void
+  callback: (bot: Bot, ...args: ClientEvents[Event]) => void | Promise<void>
 ): BotListener {
   return {
     event,
