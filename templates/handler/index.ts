@@ -1,5 +1,5 @@
 import { Client, Events } from "discord.js";
-import client from "../../bot/lib/client";
+import client from "../../bot/lib/defaultClient";
 import { getConfig } from "../../bot/lib/guild-utils";
 import type { ClientEventRegister } from "../../bot/lib/interfaces";
 
