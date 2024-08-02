@@ -8,7 +8,6 @@ import {
   VoiceConnectionStatus,
 } from "@discordjs/voice";
 import { BaseGuildTextChannel, Events, VoiceState } from "discord.js";
-import BotListener from "../lib/BotListener";
 import { createListener } from "../lib/Bot";
 
 const audioPlayer = createAudioPlayer();
