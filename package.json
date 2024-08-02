@@ -4,8 +4,7 @@
   "type": "module",
   "scripts": {
     "start": "bun ./bot/main.ts",
-    "dev": " bun --watch ./bot/main.ts",
-    "deploy-commands": "bun run ./scripts/deploy-commands.ts"
+    "dev": " bun --watch ./bot/main.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"
