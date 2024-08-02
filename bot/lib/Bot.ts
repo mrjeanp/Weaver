@@ -1,16 +1,22 @@
 import {
+  ApplicationCommandType,
   ChatInputCommandInteraction,
   REST,
   Routes,
+  SlashCommandBuilder,
+  SlashCommandSubcommandBuilder,
+  SlashCommandSubcommandGroupBuilder,
   type Client,
   type ClientEvents,
   type Interaction,
+  type SlashCommandOptionsOnlyBuilder,
+  type SlashCommandSubcommandsOnlyBuilder,
 } from "discord.js";
-import { BotCommand } from "./BotCommand";
 import { client as defaultClient } from "./client";
-import interactionCreateListener from "./core/interactionCreateListener";
+import GuildConfig from "./GuildConfig";
+import interactionCreateListener from "./interactionCreateListener";
 
-type BotConfig = {
+export type BotSettings = {
   token: string;
   applicationId: string;
   guildId?: string;
@@ -18,7 +24,7 @@ type BotConfig = {
   rest: REST;
 };
 
-export const defaulBotConfig: BotConfig = {
+export const defaultSettings: BotSettings = {
   token: process.env.DISCORD_TOKEN ?? "",
   applicationId: process.env.DISCORD_APPLICATION_ID ?? "",
   guildId: process.env.GUILD_ID,
@@ -28,7 +34,7 @@ export const defaulBotConfig: BotConfig = {
 
 export class Bot {
   readonly client: Client<boolean>;
-  protected config: BotConfig;
+  protected settings: BotSettings;
 
   //
   protected listeners: BotListener[] = [];
@@ -37,12 +43,16 @@ export class Bot {
 
   static instance: Bot;
 
-  constructor(config = defaulBotConfig) {
-    this.config = config;
-    this.client = config.client;
-    this.rest = config.rest.setToken(this.config.token);
+  constructor(settings = defaultSettings) {
+    this.settings = settings;
+    this.client = settings.client;
+    this.rest = settings.rest.setToken(this.settings.token);
 
     Bot.instance = this;
+  }
+
+  config(guildId: string) {
+    return new GuildConfig(this, guildId);
   }
 
   async start() {
@@ -51,15 +61,18 @@ export class Bot {
 
     this.listen();
     await this.pushCommands();
-    await this.client.login(this.config.token);
+    await this.client.login(this.settings.token);
   }
 
   async pushCommands() {
-    const guildId = this.config.guildId;
+    const guildId = this.settings.guildId;
     const rest = this.rest;
-    const clientId = this.config.applicationId;
+    const clientId = this.settings.applicationId;
     let data = [];
-    const body = this.commands.map((c) => c.getData());
+
+    const body = this.commands.map((c) =>
+      c.builder(new SlashCommandBuilder(), this).toJSON()
+    );
 
     try {
       if (guildId) {
@@ -79,12 +92,21 @@ export class Bot {
     }
   }
 
+  /**
+   *
+   * @param interaction
+   * @returns
+   */
   async handleCommandInteraction(interaction: Interaction) {
     if (!interaction.isCommand()) return;
+    if (interaction.commandType !== ApplicationCommandType.ChatInput) return;
+
     const command = this.commands.find(
-      (c) => c.builder.name === interaction.commandName
+      (c) =>
+        c.builder(new SlashCommandBuilder(), this).name ===
+        interaction.commandName
     );
-    command?.handle(interaction as ChatInputCommandInteraction);
+    command?.handler(interaction, this);
   }
 
   addCommand(command: BotCommand) {
@@ -123,11 +145,12 @@ export class Bot {
 
   listen() {
     for (const listener of this.listeners) {
-      this.client.on(listener.event, listener.callback);
+      this.client.on(listener.event, (...args: any[]) =>
+        listener.callback(this, ...args)
+      );
     }
   }
 
-  //
   removeListener(listener: BotListener) {
     this.client.off(listener.event, listener.callback);
     this.listeners = this.listeners.filter((l) => l !== listener);
@@ -138,12 +161,44 @@ export class Bot {
     return this.listeners.at(this.listeners.length - 1);
   }
 }
-class BotListener<Event extends keyof ClientEvents = any> {
-  event: Event;
-  callback: (...args: ClientEvents[Event]) => void;
 
-  constructor(event: Event, callback: (...args: ClientEvents[Event]) => void) {
-    this.event = event;
-    this.callback = callback;
-  }
+export interface BotCommand {
+  builder: (
+    builder: SlashCommandBuilder,
+    bot: Bot
+  ) =>
+    | SlashCommandBuilder
+    | SlashCommandSubcommandBuilder
+    | SlashCommandOptionsOnlyBuilder
+    | SlashCommandSubcommandGroupBuilder
+    | SlashCommandSubcommandsOnlyBuilder;
+  handler: (
+    interaction: ChatInputCommandInteraction,
+    bot: Bot
+  ) => void | Promise<void>;
+}
+
+export interface BotListener<Event extends keyof ClientEvents = any> {
+  event: Event;
+  callback: (bot: Bot, ...args: ClientEvents[Event]) => void | Promise<void>;
+}
+
+export function createCommand(
+  builder: (builder: SlashCommandBuilder) => ReturnType<BotCommand["builder"]>,
+  handler: BotCommand["handler"]
+) {
+  return {
+    builder,
+    handler,
+  };
+}
+
+export function createListener<Event extends keyof ClientEvents = any>(
+  event: Event,
+  callback: (bot: Bot, ...args: ClientEvents[Event]) => void
+): BotListener {
+  return {
+    event,
+    callback,
+  };
 }

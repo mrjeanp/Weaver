@@ -1,8 +1,6 @@
-import { MsgCommand } from "./commands/msg";
-import PingCommand from "./commands/ping";
-import { ReactCommand } from "./commands/react";
-import RoleCommand from "./commands/role";
-import { UnchannelCommand } from "./commands/unchannel";
+import msg from "./commands/msg";
+import react from "./commands/react";
+import unchannel from "./commands/unchannel";
 import {
   reactionAddListener,
   reactionRemoveListener,
@@ -10,22 +8,16 @@ import {
 import { voiceListener } from "./handlers/voice";
 import { Bot } from "./lib/Bot";
 
-import interactionCreateListener from "./lib/core/interactionCreateListener";
-import readyListener from "./lib/core/readyListener";
+import ping from "./commands/ping";
+import role from "./commands/role";
+import readyListener from "./handlers/readyListener";
 
-const bot = new Bot()
+new Bot()
   .addListeners([
     readyListener,
-    interactionCreateListener,
     reactionAddListener,
     reactionRemoveListener,
     voiceListener,
   ])
-  .addCommands([
-    new PingCommand(),
-    new ReactCommand(),
-    new UnchannelCommand(),
-    new MsgCommand(),
-    new RoleCommand(),
-  ])
+  .addCommands([msg, ping, react, unchannel, role])
   .start();

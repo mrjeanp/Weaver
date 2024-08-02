@@ -1,13 +1,8 @@
-import {
-  ChatInputCommandInteraction,
-  SlashCommandBuilder
-} from "discord.js";
-import { BotCommand } from "../lib/BotCommand";
+import { ChatInputCommandInteraction } from "discord.js";
+import { createCommand } from "../lib/Bot";
 
-
-
-export class ReactCommand extends BotCommand {
-  describe(builder: SlashCommandBuilder) {
+export default createCommand(
+  (builder) => {
     return builder
       .setName("react")
       .setDescription("Reacts to a message")
@@ -22,10 +17,11 @@ export class ReactCommand extends BotCommand {
       )
       .setDefaultMemberPermissions(0)
       .setDMPermission(false);
-  }
+  },
 
-  async handle(interaction: ChatInputCommandInteraction) {
+  async (interaction) => {
     if (!interaction.inGuild()) throw "not in guild";
+
     const response = await interaction.deferReply({ ephemeral: true });
     const msg = interaction.options.getString("message")!;
     const emojis =
@@ -40,4 +36,4 @@ export class ReactCommand extends BotCommand {
 
     response.edit("Done");
   }
-}
+);

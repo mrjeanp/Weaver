@@ -3,21 +3,13 @@ import {
   ButtonBuilder,
   ButtonStyle,
   CategoryChannel,
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-  SlashCommandSubcommandBuilder,
-  type GuildBasedChannel,
-  type SlashCommandOptionsOnlyBuilder,
-  type SlashCommandSubcommandsOnlyBuilder,
+  type GuildBasedChannel
 } from "discord.js";
-import { BotCommand, type BotCommandBuilder } from "../lib/BotCommand";
+import { createCommand } from "../lib/Bot";
+import { isCategory } from "../lib/guild-utils";
 
-export const data = new SlashCommandBuilder();
-
-export async function execute(interaction: ChatInputCommandInteraction) {}
-
-export class UnchannelCommand extends BotCommand {
-  describe(builder: SlashCommandBuilder): BotCommandBuilder {
+export default createCommand(
+  (builder) => {
     return builder
       .setName("unchannel")
       .setDescription("Removes all channels which name matches a pattern")
@@ -29,9 +21,9 @@ export class UnchannelCommand extends BotCommand {
       )
       .setDefaultMemberPermissions(0)
       .setDMPermission(false);
-  }
+  },
 
-  async handle(interaction: ChatInputCommandInteraction): Promise<void> {
+  async (interaction) => {
     if (!interaction.inGuild()) return;
     if (!interaction.isCommand()) return;
 
@@ -57,32 +49,33 @@ export class UnchannelCommand extends BotCommand {
       confirm
     );
 
-    const unchannels: GuildBasedChannel[] = [];
+    const unchannels: Record<string, GuildBasedChannel> = {};
+
+    function addChannel(ch: GuildBasedChannel) {
+      if (!unchannels[ch.id]) {
+        unchannels[ch.id] = ch;
+      }
+    }
 
     for (const [, ch] of guild.channels.cache) {
       if (regex.test(ch.name)) {
+        addChannel(ch);
         // is category?
-        if (
-          !ch.parent &&
-          !ch.isDMBased() &&
-          !ch.isTextBased() &&
-          !ch.isVoiceBased() &&
-          !ch.isThread() &&
-          !ch.isThreadOnly()
-        ) {
+        if (isCategory(ch)) {
           const cat = ch as CategoryChannel;
           cat.children.cache.forEach((c) => {
             if (c.deletable) {
-              unchannels.push(c);
+              addChannel(ch);
             }
           });
         }
-        unchannels.push(ch);
       }
     }
 
     const response = await interaction.followUp({
-      content: `Are you sure about deleting these channels?\n\n${unchannels
+      content: `You are about to delete these channels, are you sure?\n\n${Object.values(
+        unchannels
+      )
         .map((d) => d.name)
         .join("\n")}\n** **`,
       components: [row],
@@ -97,9 +90,8 @@ export class UnchannelCommand extends BotCommand {
         time: 60_000,
       });
       if (confirmation.customId === "confirm") {
-        for (const channel of unchannels) {
-          // await channel.delete();
-          console.log("unchannel", channel.name);
+        for (const channel of Object.values(unchannels)) {
+          await channel.delete();
         }
         await confirmation.update({
           content: `OK!`,
@@ -118,4 +110,4 @@ export class UnchannelCommand extends BotCommand {
       });
     }
   }
-}
+);

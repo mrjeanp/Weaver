@@ -9,14 +9,15 @@ import {
 } from "@discordjs/voice";
 import { BaseGuildTextChannel, Events, VoiceState } from "discord.js";
 import BotListener from "../lib/BotListener";
+import { createListener } from "../lib/Bot";
 
 const audioPlayer = createAudioPlayer();
 const getAudio = () =>
   createAudioResource("../../assets/audio/elevator-music.mp3");
 
-export const voiceListener = new BotListener(
+export const voiceListener = createListener(
   Events.VoiceStateUpdate,
-  async (oldState: VoiceState, newState: VoiceState) => {
+  async (_, oldState: VoiceState, newState: VoiceState) => {
     const client = newState.client;
     if (newState.member?.id === client.user?.id) return;
     const newVC = newState.channel;

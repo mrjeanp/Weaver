@@ -1,20 +1,8 @@
-import {
-  ChatInputCommandInteraction,
-  SlashCommandBuilder,
-  SlashCommandSubcommandBuilder,
-  type SlashCommandOptionsOnlyBuilder,
-  type SlashCommandSubcommandsOnlyBuilder,
-} from "discord.js";
+import { createCommand } from "../lib/Bot";
+import { _get, _set, _unset } from "../lib/lodash";
 
-import { getConfig, saveConfig } from "../lib/config";
-
-import _get from "lodash/get";
-import _set from "lodash/set";
-import _unset from "lodash/unset";
-import { BotCommand, type BotCommandBuilder } from "../lib/BotCommand";
-
-export default class RoleCommand extends BotCommand {
-  describe(builder: SlashCommandBuilder): BotCommandBuilder {
+export default createCommand(
+  (builder) => {
     return builder
       .setName("role")
       .setDescription("Configure a role")
@@ -26,29 +14,34 @@ export default class RoleCommand extends BotCommand {
       )
       .setDefaultMemberPermissions(0)
       .setDMPermission(false);
-  }
-  async handle(interaction: ChatInputCommandInteraction): Promise<void> {
+  },
+  async (interaction, bot) => {
     if (!interaction.inGuild()) throw "not in guild";
+
     const response = await interaction.deferReply({ ephemeral: true });
 
     const guildId = interaction.guild?.id!;
     const role = interaction.options.getRole("role")!;
     const emoji = interaction.options.getString("emoji")?.trim();
-    const config = { ...(await getConfig(guildId)) };
-    const roleConfig = _get(config, `roles.${role.id}`);
+    const config = bot.config(guildId);
+    const data = await config.fetch();
 
-    if (!emoji || emoji === "0") {
-      _unset(config, `roles.${role.id}.emoji`);
+    if (!emoji || /0|null|undefined|false|no/i.test(emoji)) {
+      _unset(data, `roles.${role.id}.emoji`);
     } else {
-      _set(config, `roles.${role.id}.emoji`, emoji);
+      _set(data, `roles.${role.id}.emoji`, emoji);
     }
 
-    if (roleConfig && Object.keys(roleConfig).length < 1) {
-      _unset(config, `roles.${role.id}`);
+    const roleConfig = _get(data, `roles.${role.id}`) ?? {};
+
+    // if the role object has no keys, delete it
+    if (!Object.keys(roleConfig).length) {
+      _unset(data, `roles.${role.id}`);
     }
 
-    saveConfig(guildId, config);
+    // saveConfig(guildId, data);
+    await config.save( data);
 
     response.edit("Done");
   }
-}
+);

@@ -1,44 +1,79 @@
-import {
-  ChatInputCommandInteraction,
-  SlashCommandBuilder
-} from "discord.js";
+import { ChatInputCommandInteraction } from "discord.js";
 
-import _set from "lodash/set";
-import _unset from "lodash/unset";
+import { createCommand } from "../lib/Bot";
+import { _get, _set, _unset } from "../lib/lodash";
 
-import { BotCommand, type BotCommandBuilder } from "../lib/BotCommand";
-import { getConfig, saveConfig } from "../lib/config";
-
-export class MsgCommand extends BotCommand {
-  describe(builder: SlashCommandBuilder): BotCommandBuilder {
-    return builder
+export default createCommand(
+  (builder) =>
+    builder
       .setName("msg")
       .setDescription("Configure a message")
       .addStringOption((option) =>
         option.setName("message").setDescription("Message ID").setRequired(true)
       )
-      .addBooleanOption((option) =>
-        option.setName("unset").setDescription("Removes message from config.")
+      .addStringOption((option) =>
+        option
+          .setName("emojis")
+          .setDescription("Adds emojis to this message for role assignment")
       )
       .setDefaultMemberPermissions(0)
-      .setDMPermission(false);
-  }
+      .setDMPermission(false),
 
-  async handle(interaction: ChatInputCommandInteraction): Promise<void> {
-    if (!interaction.inGuild()) return;
+  async (interaction: ChatInputCommandInteraction, bot) => {
+    if (!interaction.inGuild()) throw "Interaction not in guild";
 
-    const response = await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ ephemeral: true });
+
+    const messageId = interaction.options
+      .getString("message")
+      ?.trim() as string;
+    const newEmojis =
+      interaction.options.getString("emojis")?.trim().split(/\s+/) ?? [];
 
     const guildId = interaction.guild?.id!;
-    const id = interaction.options.getString("message")?.trim() as string;
-    const unset = interaction.options.getBoolean("unset");
+    const channel = interaction.channel;
 
-    const config = await getConfig(guildId);
+    let message = channel?.messages.cache.get(messageId);
+    message?.partial && message.fetch();
+    !message && (message = await channel?.messages.fetch(messageId));
 
-    _set(config, `messages.${id}`, {});
-    unset && _unset(config, `messages.${id}`);
+    const config = bot.config(guildId);
+    const data = await config.fetch();
 
-    saveConfig(guildId, config);
-    response.edit("Done");
+    const reactions = message?.reactions.cache;
+    const reactedEmojis = reactions?.map(
+      (r) => r.emoji.name ?? r.emoji.identifier
+    );
+
+    _set(data, `msg.${messageId}`, {});
+
+    if (newEmojis.length)
+      _set(data, `msg.${messageId}.emojis`, newEmojis.join(","));
+
+    const msgConfig = _get(data, `msg.${messageId}`);
+
+    if (!Object.keys(msgConfig).length) {
+      _unset(data, `msg.${messageId}`);
+    } else {
+      for (const [, reaction] of message?.reactions.cache ?? []) {
+        const remoji = reaction.emoji.name ?? reaction.emoji.identifier;
+        // if this reaction is not in new emojis list
+        if (!newEmojis.includes(remoji)) {
+          await reaction.remove();
+        }
+      }
+
+      // add new emojis
+      for (const emoji of newEmojis) {
+        await message?.react(emoji);
+      }
+    }
+
+    // await saveConfig(guildId, data);
+    await config.save(data);
+
+    interaction.editReply({
+      content: "Done",
+    });
   }
-}
+);

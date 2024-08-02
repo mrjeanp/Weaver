@@ -1,16 +1,14 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { BotCommand } from "../lib/BotCommand";
+import { createCommand } from "../lib/Bot";
 
-export default class PingCommand extends BotCommand {
-  describe(builder: SlashCommandBuilder) {
+export default createCommand(
+  (builder: SlashCommandBuilder) => {
     return builder
       .setName("ping")
       .setDescription("Replies with Pong!")
       .setDefaultMemberPermissions(0);
-  }
-  async handle(interaction: ChatInputCommandInteraction) {
+  },
+  async (interaction: ChatInputCommandInteraction) => {
     await interaction.reply("Pong!");
   }
-}
-
-export { PingCommand };
+);

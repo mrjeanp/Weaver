@@ -1,67 +1,80 @@
-import {
-  Events
-} from "discord.js";
-import assert from "../lib/assert.fn";
-import { getConfig, getEmojis } from "../lib/config";
-import { BotListener } from "../lib/BotListener";
+import { Events } from "discord.js";
+import _findKey from "lodash/findKey";
+import _get from "lodash/get";
+import { createListener } from "../lib/Bot";
 
-const reactionAddListener = new BotListener(
+export const reactionAddListener = createListener(
   Events.MessageReactionAdd,
-  async (reaction, user) => {
+  async (bot, reaction, user) => {
     try {
       const botId = reaction.client.user.id;
       const message = reaction.message;
-      const emoji = reaction.emoji.name ?? "";
-      const guildId = message.guildId;
+      message.partial && (await message.fetch());
+      const emoji = reaction.emoji.name ?? reaction.emoji.identifier;
       const guild = message.guild;
+      const guildId = message.guildId;
 
-      if (!message.inGuild() || botId === user.id) return;
+      if (!guildId || botId === user.id) return;
 
-      const config = await getConfig(guildId ?? "");
-      const _emojis = await getEmojis(guildId ?? "");
+      const config = bot.config(guildId);
+      const data = await config.fetch();
 
-      assert(message.id in config.messages, "message id not registered");
-      assert(emoji in _emojis, "emoji not registered");
+      const messageConfig = _get(data, `msg.${message.id}`) ?? {};
 
-      const roleId = _emojis[emoji];
+      const roleId = _findKey(data.roles, (o) => o.emoji === emoji) ?? "";
+      const role = await guild?.roles.fetch(roleId);
+      const roleEmoji = _get(data, `roles.${roleId}.emoji`);
+      const messageEmojis = (messageConfig.emojis ?? "").split(",") ?? [];
 
-      await guild?.members.addRole({
-        role: roleId,
-        user: user.id,
-      });
+      if (messageEmojis.includes(roleEmoji)) {
+        await guild?.members.addRole({
+          role: roleId,
+          user: user.id,
+        });
+        user.send({
+          content: `You have been assigned the role: ${roleEmoji} ${role?.name}`,
+        });
+      }
     } catch (err) {
       console.error(err);
     }
   }
 );
 
-const reactionRemoveListener = new BotListener(
+export const reactionRemoveListener = createListener(
   Events.MessageReactionRemove,
-  async (reaction, user) => {
+  async (bot, reaction, user) => {
     try {
       const botId = reaction.client.user.id;
       const message = reaction.message;
+      message.partial && (await message.fetch());
       const emoji = reaction.emoji.name ?? "";
       const guildId = message.guildId;
       const guild = message.guild;
 
-      if (!message.inGuild() || botId === user.id) return;
+      if (!guildId || !guild || botId === user.id) return;
 
-      const config = await getConfig(guildId ?? "");
-      const _emojis = await getEmojis(guildId ?? "");
+      const config = bot.config(guildId);
+      const data = await config.fetch();
 
-      assert(message.id in config.messages, "message id not registered");
-      assert(emoji in _emojis, "emoji not registered");
+      const messageConfig = _get(data, `msg.${message.id}`) ?? {};
 
-      const role = _emojis[emoji];
-      await guild!.members.removeRole({
-        role,
-        user: user.id,
-      });
+      const roleId = _findKey(data.roles, (o) => o.emoji === emoji) ?? "";
+      const role = await guild.roles.fetch(roleId);
+      const roleEmoji = _get(data, `roles.${roleId}.emoji`);
+      const messageEmojis = (messageConfig.emojis ?? "").split(",") ?? [];
+
+      if (messageEmojis.includes(roleEmoji)) {
+        await guild!.members.removeRole({
+          role: roleId,
+          user: user.id,
+        });
+        user.send({
+          content: `You have been unnasigned the role: ${roleEmoji} ${role?.name}`,
+        });
+      }
     } catch (err) {
       console.error(err);
     }
   }
 );
-
-export { reactionAddListener, reactionRemoveListener };
