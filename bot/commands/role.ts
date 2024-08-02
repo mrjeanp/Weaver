@@ -1,5 +1,5 @@
 import { createCommand } from "../lib/Bot";
-import { _get, _set, _unset } from "../lib/lodash";
+import { _get, _set, _unset } from "../lib/utils/lodash";
 
 export default createCommand(
   (builder) => {
