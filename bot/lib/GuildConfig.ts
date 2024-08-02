@@ -6,7 +6,7 @@ import {
   type GuildTextBasedChannel
 } from "discord.js";
 import type { Bot } from "./Bot";
-import { getLastMessage } from "./guild-utils";
+import { getLastMessage } from "./utils/channels";
 
 const configChannelName = process.env.CONFIG_CHANNEL ?? "weaver";
 

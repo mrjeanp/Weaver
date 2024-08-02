@@ -1,6 +1,6 @@
 import { Client, Events } from "discord.js";
 import client from "../../bot/lib/defaultClient";
-import { getConfig } from "../../bot/lib/guild-utils";
+import { getConfig } from "../../bot/lib/utils/channels";
 import type { ClientEventRegister } from "../../bot/lib/interfaces";
 
 let handler: { (client: Client<true>): void } | undefined;
