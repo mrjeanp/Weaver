@@ -3,7 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   CategoryChannel,
-  type GuildBasedChannel
+  type GuildBasedChannel,
 } from "discord.js";
 import { createCommand } from "../lib/Bot";
 import { isCategory } from "../lib/utils/channels";
@@ -81,11 +81,9 @@ export default createCommand(
       ephemeral: true,
     });
 
-    const collectorFilter = (i: any) => i.user.id === interaction.user.id;
-
     try {
       const confirmation = await response.awaitMessageComponent({
-        filter: collectorFilter,
+        filter: (i) => i.user.id === interaction.user.id,
         time: 60_000,
       });
       if (confirmation.customId === "confirm") {
@@ -93,7 +91,7 @@ export default createCommand(
           await channel.delete();
         }
         await confirmation.update({
-          content: `OK!`,
+          content: `${Object.keys.length} channels deleted.`,
           components: [],
         });
       } else if (confirmation.customId === "cancel") {

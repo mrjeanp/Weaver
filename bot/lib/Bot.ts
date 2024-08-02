@@ -184,7 +184,7 @@ export interface BotListener<Event extends keyof ClientEvents = any> {
 }
 
 export function createCommand(
-  builder: (builder: SlashCommandBuilder) => ReturnType<BotCommand["builder"]>,
+  builder: BotCommand["builder"],
   handler: BotCommand["handler"]
 ) {
   return {
