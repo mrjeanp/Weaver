@@ -5,19 +5,19 @@ import {
   reactionAddListener,
   reactionRemoveListener,
 } from "./handlers/reactions";
-import { voiceListener } from "./handlers/voice";
+// import { voiceListener } from "./handlers/voice";
 import { Bot } from "./lib/Bot";
 
 import ping from "./commands/ping";
 import role from "./commands/role";
 import readyListener from "./handlers/readyListener";
+import play from "./commands/play";
 
 new Bot()
   .addListeners([
     readyListener,
     reactionAddListener,
     reactionRemoveListener,
-    voiceListener,
   ])
-  .addCommands([msg, ping, react, unchannel, role])
+  .addCommands([msg, ping, react, unchannel, role, play])
   .start();

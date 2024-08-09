@@ -7,7 +7,10 @@ export default createListener(
     if (!interaction.isCommand()) return;
     try {
       await bot.handleCommandInteraction(interaction);
-    } catch (error) {
+    } catch (error: any) {
+      interaction.followUp(
+        `Error: ${typeof error === "string" ? error : error.message}`
+      );
       console.error(error);
     }
   }

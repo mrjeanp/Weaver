@@ -94,8 +94,7 @@ export class Bot {
 
   /**
    *
-   * @param interaction
-   * @returns
+   * @param {Interaction} interaction
    */
   async handleCommandInteraction(interaction: Interaction) {
     if (!interaction.isCommand()) return;
@@ -106,7 +105,7 @@ export class Bot {
         c.builder(new SlashCommandBuilder(), this).name ===
         interaction.commandName
     );
-    command?.handler(interaction, this);
+    return command?.handler(interaction, this);
   }
 
   addCommand(command: BotCommand) {
