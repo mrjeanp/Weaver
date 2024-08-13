@@ -10,7 +10,6 @@ import {
   reactionRemoveListener,
 } from "../bot/handlers/reactions";
 import readyListener from "../bot/handlers/readyListener";
-import { voiceListener } from "../bot/handlers/voice";
 
 test("Bot does not crash on start", async () => {
   expect(() => {
@@ -19,7 +18,6 @@ test("Bot does not crash on start", async () => {
         readyListener,
         reactionAddListener,
         reactionRemoveListener,
-        voiceListener,
       ])
       .addCommands([msg, ping, react, unchannel, role])
       .start();

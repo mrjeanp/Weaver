@@ -1,5 +1,5 @@
 import { Events } from "discord.js";
-import { createListener } from "./Bot";
+import createListener from "./utils/createListener";
 
 export default createListener(
   Events.InteractionCreate,

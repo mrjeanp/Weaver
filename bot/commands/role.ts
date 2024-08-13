@@ -1,4 +1,4 @@
-import { createCommand } from "../lib/Bot";
+import { createCommand } from "../lib/utils/createCommand";
 import { _get, _set, _unset } from "../lib/utils/lodash";
 
 export default createCommand(

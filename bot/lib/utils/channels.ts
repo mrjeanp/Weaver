@@ -1,9 +1,13 @@
 import {
+  entersState,
+  VoiceConnection,
+  VoiceConnectionStatus,
+} from "@discordjs/voice";
+import {
   type GuildBasedChannel,
   type GuildTextBasedChannel,
-  type TextBasedChannel
+  type TextBasedChannel,
 } from "discord.js";
-
 
 export async function getLastMessage(channel: GuildTextBasedChannel) {
   let msgs = await channel.messages.fetch({ limit: 1 });
@@ -39,3 +43,15 @@ export async function findMessageById(
   return msg;
 }
 
+export async function tryVoiceReconnection(connection: VoiceConnection) {
+  try {
+    await Promise.race([
+      entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+      entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+    ]);
+    // Seems to be reconnecting to a new channel - ignore disconnect
+  } catch (error) {
+    // Seems to be a real disconnect which SHOULDN'T be recovered from
+    connection.destroy();
+  }
+}

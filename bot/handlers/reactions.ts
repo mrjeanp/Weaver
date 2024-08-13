@@ -1,7 +1,7 @@
 import { Events } from "discord.js";
 import _findKey from "lodash/findKey";
 import _get from "lodash/get";
-import { createListener } from "../lib/Bot";
+import createListener from "../lib/utils/createListener";
 
 export const reactionAddListener = createListener(
   Events.MessageReactionAdd,

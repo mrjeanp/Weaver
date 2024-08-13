@@ -5,7 +5,7 @@ import {
   CategoryChannel,
   type GuildBasedChannel,
 } from "discord.js";
-import { createCommand } from "../lib/Bot";
+import { createCommand } from "../lib/utils/createCommand";
 import { isCategory } from "../lib/utils/channels";
 
 export default createCommand(

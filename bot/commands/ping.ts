@@ -1,5 +1,5 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
-import { createCommand } from "../lib/Bot";
+import { createCommand } from "../lib/utils/createCommand";
 
 export default createCommand(
   (builder: SlashCommandBuilder) => {
