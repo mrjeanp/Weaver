@@ -3,6 +3,7 @@ import {
   createAudioResource,
   joinVoiceChannel,
   StreamType,
+  VoiceConnectionStatus,
 } from "@discordjs/voice";
 import {
   ChatInputCommandInteraction,
@@ -12,6 +13,8 @@ import {
 } from "discord.js";
 import { createCommand } from "../lib/utils/createCommand";
 
+import path from "path";
+
 export default createCommand(
   (builder: SlashCommandBuilder) => {
     return builder
@@ -19,17 +22,17 @@ export default createCommand(
       .setDescription("Play an audio from the /storage directory")
       .addStringOption(
         new SlashCommandStringOption()
-          .setName("filename")
+          .setName("file")
           .setDescription("Path to the file located in /storage")
           .setRequired(true)
       )
       .setDefaultMemberPermissions(0);
   },
   async (interaction: ChatInputCommandInteraction) => {
-    await interaction.deferReply({ ephemeral: true });
     if (!interaction.inGuild()) return;
+    await interaction.deferReply({ ephemeral: true });
 
-    const filename = interaction.options.getString("filename");
+    const filename = interaction.options.getString("file") ??  "";
 
     const guild = interaction.guild as Guild;
     const user = interaction.member.user;
@@ -44,28 +47,28 @@ export default createCommand(
       guildId: guild?.id ?? "",
     });
 
-    const audioPlayer = createAudioPlayer({
+    const player = createAudioPlayer({
       debug: true,
     });
 
-    const path = require("path");
+    connection.on(VoiceConnectionStatus.Ready, async () => {
+      const filePath = path.join(__dirname, `../../storage`, filename);
+      const file = Bun.file(filePath);
 
-    const filePath = path.join(__dirname, `../../storage`, filename);
+      if (!(await file.exists())) throw "File not found";
+      console.log("/play", filePath);
 
-    const file = Bun.file(filePath);
-
-    if (!(await file.exists())) throw "File not found";
-
-    console.log(filePath);
-
-    const audio = createAudioResource(filePath, {
-      inputType: StreamType.WebmOpus,
+      const audio = createAudioResource(filePath, {
+        inputType: StreamType.WebmOpus,
+      });
+      connection.subscribe(player);
+      player.play(audio);
     });
 
-    connection.subscribe(audioPlayer);
-
-
-    audioPlayer.play(audio);
+    connection.on("error", (err) => {
+      player.stop();
+      connection.subscribe(player);
+    });
 
     interaction.followUp("Ok!");
   }
