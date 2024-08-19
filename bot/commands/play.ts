@@ -19,11 +19,11 @@ export default createCommand(
   (builder: SlashCommandBuilder) => {
     return builder
       .setName("play")
-      .setDescription("Play an audio from the /storage directory")
+      .setDescription("Play an audio file from your storage")
       .addStringOption(
         new SlashCommandStringOption()
           .setName("file")
-          .setDescription("Path to the file located in /storage")
+          .setDescription("Path within your /storage folder")
           .setRequired(true)
       )
       .setDefaultMemberPermissions(0);
