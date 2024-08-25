@@ -23,6 +23,9 @@ By default this bot will automatically create a new channel called `weaver` (if 
 
 ## Built-in Commands
 
+### `/move [channel*]`
+Moves pinned messages to another channel.
+
 ### `/role [role*] [emoji]`
 
 Configure a role.
